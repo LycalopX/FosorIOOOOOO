@@ -10,7 +10,7 @@ ESTRUTURA DE ARQUIVO DE ENTRADA:
 */
 
 #include "constants.h"
-
+#include "readData.h"
 
 // Copiado do E03.c
 int main()
@@ -19,6 +19,7 @@ int main()
 
     int n, size = 0;
     struct Point4D *points = NULL;
+    conta *vet = NULL;
 
     while (1)
     {
@@ -34,6 +35,11 @@ int main()
         {
         case 0:
         {
+            read_data(vet, &size);
+            if(vet == NULL) {
+                printf("ERRO\n");
+            } else {
+                printf("OK\n");}
             break;
         }
 
