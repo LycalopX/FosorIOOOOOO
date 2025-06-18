@@ -10,7 +10,7 @@
 typedef struct contas
 {
     int nro_conta;
-    long int cpf;
+    long long int cpf;
     char nome[30];
     double saldo;
 } conta;

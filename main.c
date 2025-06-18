@@ -18,7 +18,6 @@ int main()
     printf("EXEC MAIN\n");
 
     int n, size = 0;
-    struct Point4D *points = NULL;
     conta *vet = NULL;
 
     while (1)
@@ -35,11 +34,14 @@ int main()
         {
         case 0:
         {
-            read_data(vet, &size);
-            if(vet == NULL) {
+            vet = calloc(1, sizeof(conta));
+            read_data(&vet, &size);
+            if (vet == NULL || size <= 0) {
                 printf("ERRO\n");
             } else {
-                printf("OK\n");}
+                printf("OK\n");
+                exibe_dados(size, vet);
+            }
             break;
         }
 
@@ -96,8 +98,8 @@ int main()
     }
 
     printf("EXEC FIM\n");
-    free(points);  // Libera a memória alocada
-    points = NULL; // Evita ponteiro solto
+    free(vet);  // Libera a memória alocada
+    vet = NULL; // Evita ponteiro solto
 
     return 0;
 }
