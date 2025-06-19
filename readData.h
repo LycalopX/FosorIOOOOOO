@@ -14,7 +14,7 @@
  * A função exibe "OK" na tela se a leitura for bem-sucedida ou "ERRO" em caso de falha
  * (ex: não conseguir abrir o arquivo).
  */
-void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
+void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
 {
 
     FILE *arq;
@@ -22,7 +22,7 @@ void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
     arq = fopen("contasin.csv", "r");
     if (arq == NULL)
     {
-        return; // Erro ao abrir o arquivo
+        return;
     }
 
     char linha[100];
@@ -33,7 +33,7 @@ void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
     if (*vet == NULL)
     {
         fclose(arq);
-        return; // Erro ao alocar memória
+        return;
     }
 
     int i = 0;
@@ -52,22 +52,20 @@ void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
 
         tok = strtok(NULL, ",");
         (*vet)[i].saldo = atof(tok);
+        if ((*vet)[i].saldo < 0)
+        {
+            double a = (*vet)[i].saldo * 0.01;
+            (*vet)[i].saldo += a; // Aplica o juro de 1%
+
+            // Registra a transação de juros
+            transacs[*ntransacs].nro_conta = (*vet)[i].nro_conta;
+            transacs[*ntransacs].tipo = 'J';
+            transacs[*ntransacs].valor = a;
+            (*ntransacs)++;
+        }
         i++;
     }
 
     fclose(arq);
     return;
-}
-
-void exibe_dados(int size, conta *vet)
-{
-    if (vet == NULL)
-    {
-        printf("Error: vet is NULL.\n");
-        return;
-    }
-    for (int i = 0; i < size; i++)
-    {
-        printf("%d,%lld,%s,%.2lf\n", vet[i].nro_conta, vet[i].cpf, vet[i].nome, vet[i].saldo);
-    }
 }

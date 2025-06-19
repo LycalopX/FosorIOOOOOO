@@ -17,6 +17,7 @@ ESTRUTURA DE ARQUIVO DE ENTRADA:
 #include "pagamento.h"
 #include "transferencia.h"
 #include "saveData.h"
+#include "novaconta.h"
 
 int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
 {
@@ -59,6 +60,8 @@ int main(int argc, char *argv[])
         else
         {
             scanf("%d", &n);
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF); 
         }
 
         switch (n)
@@ -67,14 +70,13 @@ int main(int argc, char *argv[])
         // Se n for -1, encerra o programa
         case -1:
         {
-            break;
+            return 0;
         }
 
         // 0 – Carrega dados do arquivo “contasin.csv” (e atualiza com cobrança de juros em contas negativas)
         case 0:
         {
-
-            read_data(&vet, &size, &transacs, &ntransacs);
+            read_data(&vet, &size, transacs, &ntransacs);
             if (vet == NULL || size <= 0)
             {
                 printf("ERRO\n");
@@ -89,6 +91,7 @@ int main(int argc, char *argv[])
         // 1 – Abre nova conta corrente
         case 1:
         {
+            abrir_conta(vet, &size, transacs, &ntransacs);
             break;
         }
 
