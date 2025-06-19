@@ -10,10 +10,7 @@ ESTRUTURA DE ARQUIVO DE ENTRADA:
 */
 
 #include "constants.h"
-<<<<<<< Updated upstream
 #include "readData.h"
-=======
->>>>>>> Stashed changes
 
 // Copiado do E03.c
 int main()
