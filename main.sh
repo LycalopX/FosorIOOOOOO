@@ -25,7 +25,7 @@ cat << 'EOF'
       `--`
 EOF
 
-gcc -std=c99 -Wall -o main *.c
+gcc -std=c99 -Wall -o main BANCO_ACME.c
 
 # Se não houver argumentos, executa os casos de teste
 if [ $# -eq 0 ]; then

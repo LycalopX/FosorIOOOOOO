@@ -1,0 +1,460 @@
+// Definições de constantes
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
+typedef struct conta
+{
+    int nro_conta;
+    long long int cpf;
+    char nome[30];
+    double saldo;
+} conta;
+
+typedef struct transaction
+{
+    int nro_conta;
+    char tipo;
+    double valor;
+} transaction;
+
+/**
+ * @brief Lê os dados de contas do arquivo "contasin.csv" e processa juros em saldos negativos.
+ * @param vet Ponteiro para o vetor de contas que será alocado e preenchido.
+ * @param size Ponteiro para a variável que armazenará o número de contas lidas.
+ * @param transacs Ponteiro para o vetor onde as transações de juros serão armazenadas.
+ * @param ntransacs Ponteiro para a variável que armazena o número total de transações.
+ *
+ * A função abre o arquivo "contasin.csv", aloca dinamicamente memória para armazenar
+ * todas as contas e as carrega. Durante o carregamento, para cada conta com saldo
+ * negativo, é aplicado um juro de 1% (aumentando o valor devido). Cada aplicação de
+ * juros é registrada como uma nova transação no vetor 'transf'.
+ * A função exibe "OK" na tela se a leitura for bem-sucedida ou "ERRO" em caso de falha
+ * (ex: não conseguir abrir o arquivo).
+ */
+void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
+{
+
+    FILE *arq;
+
+    arq = fopen("contasin.csv", "r");
+    if (arq == NULL)
+    {
+        return; // Erro ao abrir o arquivo
+    }
+
+    char linha[100];
+    fgets(linha, sizeof(linha), arq); // Lê a primeira linha com o número de contas
+    *size = atoi(linha);
+
+    *vet = (conta *)calloc(*size, sizeof(conta));
+    if (*vet == NULL)
+    {
+        fclose(arq);
+        return; // Erro ao alocar memória
+    }
+
+    int i = 0;
+    while (fgets(linha, sizeof(linha), arq))
+    {
+        linha[strcspn(linha, "\n")] = 0;
+        char *tok = strtok(linha, ",");
+        (*vet)[i].nro_conta = atoi(tok);
+
+        tok = strtok(NULL, ",");
+        (*vet)[i].cpf = atoll(tok);
+
+        tok = strtok(NULL, ",");
+        strncpy((*vet)[i].nome, tok, sizeof((*vet)[i].nome) - 1);
+        (*vet)[i].nome[sizeof((*vet)[i].nome) - 1] = '\0';
+
+        tok = strtok(NULL, ",");
+        (*vet)[i].saldo = atof(tok);
+        i++;
+    }
+
+    fclose(arq);
+    return;
+}
+
+void exibe_dados(int size, conta *vet)
+{
+    if (vet == NULL)
+    {
+        printf("Error: vet is NULL.\n");
+        return;
+    }
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d,%lld,%s,%.2lf\n", vet[i].nro_conta, vet[i].cpf, vet[i].nome, vet[i].saldo);
+    }
+}
+
+int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
+{
+    // SOD = Single/Origin/Destination
+
+    if (nro_conta <= 0 || nro_conta % 1 != 0)
+    {
+        printf("ERROCONTA%s\n", SOD);
+        return -1;
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        if (vet[i].nro_conta == nro_conta)
+        {
+            return i;
+        }
+    }
+
+    printf("ERROINEXISTENTE%s\n", SOD);
+    return -1;
+}
+
+/**
+ * @brief Realiza um depósito em uma conta corrente específica.
+ * @param posicaoConta A posição na string da conta que receberá o depósito.
+ * @param valor O valor a ser depositado.
+ * @param contas Vetor que armazena todas as contas existentes.
+ * @param nro_conta Número da conta que receberá o depósito
+ * @param transacs Vetor para registrar a nova transação de depósito.
+ * @param ntransacs Ponteiro para a variável que indica o número de transações totais.
+ *
+ * A função primeiro valida o número da conta. Se for inválido, exibe "ERROCONTA".
+ * Em seguida, busca a conta no sistema. Se não a encontrar, exibe "ERROINEXISTENTE".
+ * Se a conta for válida e existir, o valor do depósito é somado ao saldo atual
+ * e a operação é registrada como uma nova transação. Em caso de sucesso, exibe uma
+ * mensagem de confirmação no formato "CONTA [numero] - DEP [valor]".
+ */
+void realizar_deposito(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs)
+{
+    contas[posicaoConta].saldo += valor;
+
+    transacs[*ntransacs].nro_conta = nro_conta;
+    transacs[*ntransacs].tipo = 'D';
+    transacs[*ntransacs].valor = valor;
+    (*ntransacs)++;
+
+    printf("CONTA %08d - DEP %.2f\n", nro_conta, valor);
+}
+
+/**
+ * @brief Realiza um saque de uma conta corrente específica.
+ * @param posicaoConta A posição na string da conta que receberá o depósito.
+ * @param valor O valor a ser depositado.
+ * @param contas Vetor que armazena todas as contas existentes.
+ * @param nro_conta Número da conta que receberá o depósito
+ * @param transacs Vetor para registrar a nova transação de depósito.
+ * @param ntransacs Ponteiro para a variável que indica o número de transações totais.
+ *
+ * A função valida o número da conta (retornando "ERROCONTA" se inválido) e verifica
+ * sua existência (retornando "ERROINEXISTENTE" se não encontrada). Se a conta for
+ * válida, o valor do saque é subtraído do saldo e a operação é registrada como uma
+ * transação. Em caso de sucesso, exibe "CONTA [numero] - SAQUE [valor]".
+ */
+void realizar_saque(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs) {
+    contas[posicaoConta].saldo -= valor;
+
+    transacs[*ntransacs].nro_conta = nro_conta;
+    transacs[*ntransacs].tipo = 'S';
+    transacs[*ntransacs].valor = valor;
+    (*ntransacs)++;
+
+    printf("CONTA %08d - SAQUE %.2f\n", nro_conta, valor);
+}; 
+
+/**
+ * @brief Efetua um pagamento a partir de uma conta corrente.
+ * @param posicaoConta O índice da conta no vetor de contas.
+ * @param valor O valor do pagamento a ser debitado.
+ * @param contas Ponteiro para o vetor de todas as contas.
+ * @param nro_conta O número da conta que está efetuando o pagamento.
+ * @param transacs Ponteiro para o vetor de transações.
+ * @param ntransacs Ponteiro para o contador total de transações.
+ *
+ * Esta função assume que a conta já foi validada e encontrada. Ela subtrai
+ * o valor do saldo da conta, registra uma nova transação do tipo 'P' (Pagamento),
+ * e exibe a confirmação no formato "CONTA [numero] - PGTO [valor]".
+ */
+void realizar_pagamento(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs) {
+    contas[posicaoConta].saldo -= valor;
+
+    transacs[*ntransacs].nro_conta = nro_conta;
+    transacs[*ntransacs].tipo = 'P';
+    transacs[*ntransacs].valor = valor;
+    (*ntransacs)++;
+
+    printf("CONTA %08d - PGTO %.2f\n", nro_conta, valor);
+};
+
+/**
+ * @brief Efetua uma transferência de valor entre duas contas correntes.
+ * @param posicaoOrigem O índice da conta de origem no vetor.
+ * @param posicaoDestino O índice da conta de destino no vetor.
+ * @param valor O valor a ser transferido.
+ * @param contas Ponteiro para o vetor de todas as contas.
+ * @param nro_origem Número da conta de origem (para log e impressão).
+ * @param nro_destino Número da conta de destino (para log e impressão).
+ * @param transacs Ponteiro para o vetor de transações.
+ * @param ntransacs Ponteiro para o contador total de transações.
+ *
+ * Esta função assume que ambas as contas já foram validadas e encontradas.
+ * Ela subtrai o valor do saldo da conta de origem, adiciona o mesmo valor ao saldo
+ * da conta de destino e registra uma única transação do tipo 'T' (Transferência).
+ * Ao final, exibe a confirmação no formato "DA CONTA [origem] PARA CONTA [destino] - TRANSF [valor]".
+ */
+void realizar_transferencia(int posicaoOrigem, int posicaoDestino, double valor, conta* contas, int nro_origem, int nro_destino, transaction* transacs, int* ntransacs) {
+    
+    contas[posicaoOrigem].saldo -= valor;
+    contas[posicaoDestino].saldo += valor;
+
+    transacs[*ntransacs].nro_conta = nro_origem;
+    transacs[*ntransacs].tipo = 'S';
+    transacs[*ntransacs].valor = valor;
+    (*ntransacs)++;
+
+    transacs[*ntransacs].nro_conta = nro_destino;
+    transacs[*ntransacs].tipo = 'D';
+    transacs[*ntransacs].valor = valor;
+    (*ntransacs)++;
+
+    printf("DA CONTA %08d PARA CONTA %08d - TRANSF %.2lf\n", nro_origem, nro_destino, valor);
+};
+
+/**
+ * @brief Salva o estado atual das contas e transações em arquivos CSV.
+ * @param contas Ponteiro para o vetor com os dados de todas as contas.
+ * @param size O número total de contas a serem salvas.
+ * @param transacs Ponteiro para o vetor com todas as transações realizadas.
+ * @param ntransacs O número total de transações a serem salvas.
+ *
+ * Esta função cria ou sobrescreve dois arquivos de saída para persistir os dados da sessão:
+ *
+ * 1.  `contasout.csv`: Salva a situação atual das contas.
+ * - O arquivo inicia com um cabeçalho no formato [N_CONTAS],[N_COLUNAS].
+ * - Cada linha subsequente representa uma conta com seus dados (número, CPF, nome, saldo),
+ * com o valor do saldo sempre formatado para ter duas casas decimais.
+ *
+ * 2.  `operaout.csv`: Salva o histórico de todas as transações (máximo de 1000).
+ * - Cada linha representa uma transação com 3 campos: número da conta, tipo e valor.
+ * - O valor da transação também é formatado com duas casas decimais.
+ * - Os tipos de transação são:
+ * - J: Juros (cobrados na carga inicial em contas negativas)
+ * - D: Depósito
+ * - S: Saque
+ * - P: Pagamento
+ * - A: Abertura de nova conta
+ * - F: Fechamento de conta
+ *
+ * A função exibe "OK" na tela se ambos os arquivos forem escritos com sucesso,
+ * ou "ERRO" se ocorrer qualquer falha durante o processo de escrita.
+ */
+int salvar_dados_em_disco(conta *contas, int size, transaction *transacs, int ntransacs)
+{
+    FILE *file = fopen("contasout.csv", "w");
+
+    if (file == NULL)
+    {
+        return 0;
+    }
+
+    fprintf(file, "%d, %d\n", size, 4);
+
+    for (int i = 0; i < size; i++)
+    {
+        fprintf(file, "%08d, %lld, %s, %.2lf\n",
+                contas[i].nro_conta,
+                contas[i].cpf,
+                contas[i].nome,
+                contas[i].saldo);
+    }
+
+    fclose(file);
+
+    file = fopen("operaout.csv", "w");
+
+    if (file == NULL)
+    {
+        return 0;
+    }
+
+    for (int i = 0; i < ntransacs; i++)
+    {
+        fprintf(file, "%08d, %c, %.2lf\n",
+                transacs[i].nro_conta,
+                transacs[i].tipo,
+                transacs[i].valor);
+    }
+
+    fclose(file);
+    file = NULL;
+
+    return 1;
+};
+
+
+
+
+
+
+// Copiado do E03.c
+int main(int argc, char *argv[])
+{
+    printf("EXEC MAIN\n");
+
+    int n = -2, size = 0, ntransacs = 0;
+    conta *vet = calloc(1, sizeof(conta));
+    transaction *transacs = calloc(1000, sizeof(transaction));
+
+    while (1)
+    {
+
+        if (n == -2)
+        {
+            n = atoi(argv[1]);
+        }
+        else
+        {
+            scanf("%d", &n);
+        }
+
+        switch (n)
+        {
+
+        // Se n for -1, encerra o programa
+        case -1:
+        {
+            break;
+        }
+
+        // 0 – Carrega dados do arquivo “contasin.csv” (e atualiza com cobrança de juros em contas negativas)
+        case 0:
+        {
+
+            read_data(&vet, &size, &transacs, &ntransacs);
+            if (vet == NULL || size <= 0)
+            {
+                printf("ERRO\n");
+            }
+            else
+            {
+                printf("OK\n");
+            }
+            break;
+        }
+
+        // 1 – Abre nova conta corrente
+        case 1:
+        {
+            break;
+        }
+
+        // 2 – Fecha conta corrente existente
+        case 2:
+        {
+            break;
+        }
+
+        // 3 – Consulta o saldo de conta corrente (pelo nro. da conta)
+        case 3:
+        {
+            break;
+        }
+
+        // 4 – Consulta o saldo de conta corrente (pelo nro. do CPF)
+        case 4:
+        {
+            break;
+        }
+
+        // 5 – Realiza o depósito de um valor em uma conta
+        case 5:
+        {
+            int nro_conta;
+            double valor;
+            scanf("%d %lf", &nro_conta, &valor);
+
+            int posicao = contaExiste(nro_conta, vet, size, "");
+            if (posicao >= 0)
+            {
+                realizar_deposito(posicao, valor, vet, nro_conta, transacs, &ntransacs);
+            }
+
+            break;
+        }
+
+        // 6 – Realiza o saque de um valor de uma conta
+        case 6:
+        {
+            int nro_conta;
+            double valor;
+            scanf("%d %lf", &nro_conta, &valor);
+
+            int posicao = contaExiste(nro_conta, vet, size, "");
+            if (posicao >= 0)
+            {
+                realizar_saque(posicao, valor, vet, nro_conta, transacs, &ntransacs);
+            }
+            break;
+        }
+
+        // 7 – Realiza um pagamento com o saldo de uma conta
+        case 7:
+        {
+            int nro_conta;
+            double valor;
+            scanf("%d %lf", &nro_conta, &valor);
+
+            int posicao = contaExiste(nro_conta, vet, size, "");
+            if (posicao >= 0)
+            {
+                realizar_pagamento(posicao, valor, vet, nro_conta, transacs, &ntransacs);
+            }
+            break;
+        }
+
+        // 8 – Transfere valor de uma conta para outra conta
+        case 8:
+        {
+            int nro_conta_origem, nro_conta_destino;
+            double valor;
+            scanf("%d %d %lf", &nro_conta_origem, &nro_conta_destino, &valor);
+
+            int posicao_origem = contaExiste(nro_conta_origem, vet, size, "(O)");
+            int posicao_destino = contaExiste(nro_conta_destino, vet, size, "(D)");
+
+            if (posicao_origem >= 0 && posicao_destino >= 0)
+            {
+                realizar_transferencia(posicao_origem, posicao_destino, valor, vet, nro_conta_origem, nro_conta_destino, transacs, &ntransacs);
+            }
+
+            break;
+        }
+
+        // 9 – Salva em disco a posição atual do dia (saldos
+        case 9:
+        {
+            if (salvar_dados_em_disco(vet, size, transacs, ntransacs)) {
+                printf("OK\n");
+            } else {
+                printf("ERRO\n");
+            }
+            break;
+        }
+
+        default:
+            printf("EXEC INVALIDO\n");
+            break;
+        }
+    }
+
+    printf("EXEC FIM\n");
+    free(vet);
+    free(transacs);
+    vet = NULL;
+    transacs = NULL;
+
+    return 0;
+}

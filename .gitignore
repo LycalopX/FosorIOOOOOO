@@ -1,3 +1,5 @@
 ./*.o
 main
 main.exe
+contasout.csv
+operaout.csv
