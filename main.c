@@ -10,7 +10,10 @@ ESTRUTURA DE ARQUIVO DE ENTRADA:
 */
 
 #include "constants.h"
+<<<<<<< Updated upstream
 #include "readData.h"
+=======
+>>>>>>> Stashed changes
 
 // Copiado do E03.c
 int main()
@@ -80,13 +83,15 @@ int main()
         {
             break;
         }
-        
-        case 8: {
+
+        case 8:
+        {
 
             break;
         }
 
-        case 9: {
+        case 9:
+        {
 
             break;
         }
@@ -94,7 +99,6 @@ int main()
         default:
             printf("EXEC INVALIDO\n");
             break;
-
         }
     }
 
@@ -104,3 +108,19 @@ int main()
 
     return 0;
 }
+
+/*
+
+0 – Carrega dados do arquivo “contasin.csv” (e atualiza com cobrança de juros em contas negativas)
+1 – Abre nova conta corrente
+2 – Fecha conta corrente existente
+3 – Consulta o saldo de conta corrente (pelo nro. da conta)
+4 – Consulta o saldo de conta corrente (pelo nro. do CPF)
+5 – Deposita valor em uma conta
+6 – Realiza o saque de um valor de uma conta
+7 – Realiza um pagamento com o saldo de uma conta
+8 – Transfere valor de uma conta para outra conta
+9 – Salva em disco a posição atual do dia (saldos em contasout.csv e transações em operaout.csv)
+-1 – Encerra a execução do programa.
+
+*/
