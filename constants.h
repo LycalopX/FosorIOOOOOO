@@ -15,4 +15,11 @@ typedef struct contas
     double saldo;
 } conta;
 
+typedef struct transferencias
+{
+    int nro_conta;
+    char tipo;
+    double valor;
+} transferencia;
+
 #endif // CONSTANTS_H

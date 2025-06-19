@@ -2,7 +2,7 @@
 
 FILE *arq;
 
-void read_data(conta **vet, int *size)
+void read_data(conta **vet, int *size, transferencia **transf, int *ntransf)
 {
     arq = fopen("contasin.csv", "r");
     if (arq == NULL)

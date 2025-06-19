@@ -17,8 +17,9 @@ int main()
 {
     printf("EXEC MAIN\n");
 
-    int n, size = 0;
+    int n, size = 0, ntransf;
     conta *vet = NULL;
+    transferencia *transf = NULL;
 
     while (1)
     {
@@ -35,12 +36,12 @@ int main()
         case 0:
         {
             vet = calloc(1, sizeof(conta));
-            read_data(&vet, &size);
+            transf = calloc(1000, sizeof(transferencia));
+            read_data(&vet, &size, &transf, &ntransf);
             if (vet == NULL || size <= 0) {
                 printf("ERRO\n");
             } else {
                 printf("OK\n");
-                exibe_dados(size, vet);
             }
             break;
         }
