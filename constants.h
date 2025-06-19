@@ -7,7 +7,7 @@
 #include <math.h>
 #include <string.h>
 
-typedef struct contas
+typedef struct conta
 {
     int nro_conta;
     long long int cpf;
@@ -15,11 +15,11 @@ typedef struct contas
     double saldo;
 } conta;
 
-typedef struct transferencias
+typedef struct transaction
 {
     int nro_conta;
     char tipo;
     double valor;
-} transferencia;
+} transaction;
 
 #endif // CONSTANTS_H
