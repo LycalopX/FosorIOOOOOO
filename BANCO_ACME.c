@@ -33,7 +33,7 @@ typedef struct transaction
  * A função exibe "OK" na tela se a leitura for bem-sucedida ou "ERRO" em caso de falha
  * (ex: não conseguir abrir o arquivo).
  */
-void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
+void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
 {
 
     FILE *arq;
@@ -41,7 +41,7 @@ void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
     arq = fopen("contasin.csv", "r");
     if (arq == NULL)
     {
-        return; // Erro ao abrir o arquivo
+        return;
     }
 
     char linha[100];
@@ -52,7 +52,7 @@ void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
     if (*vet == NULL)
     {
         fclose(arq);
-        return; // Erro ao alocar memória
+        return;
     }
 
     int i = 0;
@@ -71,6 +71,17 @@ void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
 
         tok = strtok(NULL, ",");
         (*vet)[i].saldo = atof(tok);
+        if ((*vet)[i].saldo < 0)
+        {
+            double a = (*vet)[i].saldo * 0.01;
+            (*vet)[i].saldo += a; // Aplica o juro de 1%
+
+            // Registra a transação de juros
+            transacs[*ntransacs].nro_conta = (*vet)[i].nro_conta;
+            transacs[*ntransacs].tipo = 'J';
+            transacs[*ntransacs].valor = a;
+            (*ntransacs)++;
+        }
         i++;
     }
 
@@ -78,17 +89,65 @@ void read_data(conta **vet, int *size, transaction **transacs, int *ntransacs)
     return;
 }
 
-void exibe_dados(int size, conta *vet)
+void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
 {
-    if (vet == NULL)
+    char linha[3][30];
+    for (int i = 0; i < 3; i++)
     {
-        printf("Error: vet is NULL.\n");
+        fgets(linha[i], sizeof(linha[i]), stdin);
+        linha[i][strcspn(linha[i], "\n")] = 0;
+    }
+
+    int a = 0;
+    for (int i = 0; i < 7; i++)
+    {
+        a += linha[0][i] - '0';
+    }
+    if ((a % 10) != (linha[0][7] - '0'))
+    {
+        printf("ERROCONTA\n");
         return;
     }
-    for (int i = 0; i < size; i++)
+
+    a = 0;
+    int b = 10 * (linha[1][9] - '0') + (linha[1][10] - '0');
+    for (int i = 0; i < 9; i++)
     {
-        printf("%d,%lld,%s,%.2lf\n", vet[i].nro_conta, vet[i].cpf, vet[i].nome, vet[i].saldo);
+        a += linha[1][i] - '0';
     }
+    if (a != b)
+    {
+        printf("ERROCPF\n");
+        return;
+    }
+
+    for(int i = 0; i < *size; i++)
+    {
+        if (vet[i].nro_conta == atoi(linha[0]))
+        {
+            printf("ERRODUPLICADA\n");
+            return;
+        }
+    }
+    *size += 1;
+    vet = (conta*)realloc(vet, (*size) * sizeof(conta));
+    if (vet == NULL)
+    {
+        printf("ERROALOCACAO\n");
+        return;
+    }
+    vet[*size - 1].nro_conta = atoi(linha[0]);
+    vet[*size - 1].cpf = atoll(linha[1]);
+    strncpy(vet[*size - 1].nome, linha[2], sizeof(vet[*size - 1].nome) - 1);
+    vet[*size - 1].nome[sizeof(vet[*size - 1].nome) - 1] = '\0';
+    vet[*size - 1].saldo = 0.0;
+
+    transacs[*ntransacs].nro_conta = vet[*size - 1].nro_conta;
+    transacs[*ntransacs].tipo = 'A';
+    transacs[*ntransacs].valor = 0.0;
+    (*ntransacs)++;
+
+    return;
 }
 
 int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
@@ -299,7 +358,6 @@ int salvar_dados_em_disco(conta *contas, int size, transaction *transacs, int nt
 
 
 
-// Copiado do E03.c
 int main(int argc, char *argv[])
 {
     printf("EXEC MAIN\n");
@@ -318,6 +376,8 @@ int main(int argc, char *argv[])
         else
         {
             scanf("%d", &n);
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF); 
         }
 
         switch (n)
@@ -326,7 +386,12 @@ int main(int argc, char *argv[])
         // Se n for -1, encerra o programa
         case -1:
         {
-            break;
+            printf("EXEC FIM\n");
+            free(vet);
+            free(transacs);
+            vet = NULL;
+            transacs = NULL;
+            return 0;
         }
 
         // 0 – Carrega dados do arquivo “contasin.csv” (e atualiza com cobrança de juros em contas negativas)
@@ -348,6 +413,7 @@ int main(int argc, char *argv[])
         // 1 – Abre nova conta corrente
         case 1:
         {
+            abrir_conta(vet, &size, transacs, &ntransacs);
             break;
         }
 
