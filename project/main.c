@@ -18,6 +18,7 @@ ESTRUTURA DE ARQUIVO DE ENTRADA:
 #include "transferencia.h"
 #include "saveData.h"
 #include "novaconta.h"
+#include "fechaconta.h"
 
 int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
 {
@@ -98,6 +99,7 @@ int main(int argc, char *argv[])
         // 2 – Fecha conta corrente existente
         case 2:
         {
+            fechar_conta(vet, &size, transacs, &ntransacs);
             break;
         }
 
