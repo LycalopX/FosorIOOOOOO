@@ -35,9 +35,7 @@ typedef struct transaction
  */
 void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
 {
-
     FILE *arq;
-
     arq = fopen("contasin.csv", "r");
     if (arq == NULL)
     {
@@ -208,6 +206,60 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     transacs[*ntransacs].tipo = 'F';
     transacs[*ntransacs].valor = 0.0;
     (*ntransacs)++;
+    return;
+}
+
+void ver_saldo(conta *vet, int size, int tipo)
+{
+    char linha[30];
+    fgets(linha, sizeof(linha), stdin);
+    linha[strcspn(linha, "\n")] = 0;
+    if (tipo == 0)
+    {
+        int a = 0;
+        for (int i = 0; i < 7; i++)
+        {
+            a += linha[i] - '0';
+        }
+        if ((a % 10) != (linha[7] - '0'))
+        {
+            printf("ERROCONTA\n");
+            return;
+        }
+        int nro_conta = atoi(linha);
+        for (int i = 0; i < size; i++)
+        {
+            if (vet[i].nro_conta == nro_conta)
+            {
+                printf("SALDO %.2f\n", vet[i].saldo);
+                return;
+            }
+        }
+    }
+    else if (tipo==1)
+    {
+        int a = 0;
+        int b = 10 * (linha[9] - '0') + (linha[10] - '0');
+        for (int i = 0; i < 9; i++)
+        {
+            a += linha[i] - '0';
+        }
+        if (a != b)
+        {
+            printf("ERROCPF\n");
+            return;
+        }
+        long long int cpf = atoll(linha);
+        for (int i = 0; i < size; i++)
+        {
+            if (vet[i].cpf == cpf)
+            {
+                printf("CONTA %08d - SALDO %.2f\n", vet[i].nro_conta, vet[i].saldo);
+                return;
+            }
+        }
+    }
+    printf("ERROINEXISTENTE\n");
     return;
 }
 
@@ -488,12 +540,14 @@ int main(int argc, char *argv[])
         // 3 – Consulta o saldo de conta corrente (pelo nro. da conta)
         case 3:
         {
+            ver_saldo(vet, size, 0);
             break;
         }
 
         // 4 – Consulta o saldo de conta corrente (pelo nro. do CPF)
         case 4:
         {
+            ver_saldo(vet, size, 1);
             break;
         }
 

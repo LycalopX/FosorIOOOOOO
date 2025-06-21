@@ -19,6 +19,7 @@ ESTRUTURA DE ARQUIVO DE ENTRADA:
 #include "saveData.h"
 #include "novaconta.h"
 #include "fechaconta.h"
+#include "saldo.h"
 
 int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
 {
@@ -106,12 +107,14 @@ int main(int argc, char *argv[])
         // 3 – Consulta o saldo de conta corrente (pelo nro. da conta)
         case 3:
         {
+            ver_saldo(vet, size, 0);
             break;
         }
 
         // 4 – Consulta o saldo de conta corrente (pelo nro. do CPF)
         case 4:
         {
+            ver_saldo(vet, size, 1);
             break;
         }
 
