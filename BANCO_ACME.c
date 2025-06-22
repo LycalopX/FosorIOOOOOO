@@ -228,6 +228,10 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
         (*ntransacs)++;
         printf("SAQUE %.2f\n", vet[i].saldo);
     }
+    else if(vet[i].saldo == 0)
+    {
+        printf("SALDO 0\n");
+    }
     vet[i].nro_conta = -1; // Marca a conta como fechada
     transacs[*ntransacs].nro_conta = vet[i].nro_conta;
     transacs[*ntransacs].tipo = 'F';
@@ -268,9 +272,9 @@ void ver_saldo(conta *vet, int size, int tipo)
             if (vet[i].nro_conta == nro_conta)
             {
                 printf("SALDO %.2f\n", vet[i].saldo);
-                return;
             }
         }
+        return;
     }
     else if (tipo == 1)
     {
@@ -291,9 +295,9 @@ void ver_saldo(conta *vet, int size, int tipo)
             if (vet[i].cpf == cpf)
             {
                 printf("CONTA %08d - SALDO %.2f\n", vet[i].nro_conta, vet[i].saldo);
-                return;
             }
         }
+        return;
     }
     printf("ERROINEXISTENTE\n");
     return;
@@ -535,6 +539,15 @@ int main(int argc, char *argv[])
 
     while (1)
     {
+        if(ntransacs >= 1000)
+        {
+            printf("NUMERO DE TRANSACOES MAXIMAS DO DIA ALCANCADAS\nEXEC FIM\n");
+            free(vet);
+            free(transacs);
+            vet = NULL;
+            transacs = NULL;
+            return 0;
+        }
 
         scanf("%d", &n);
         int c;
