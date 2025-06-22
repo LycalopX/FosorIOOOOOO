@@ -155,6 +155,7 @@ void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     transacs[*ntransacs].valor = 0.0;
     (*ntransacs)++;
 
+    printf("OKCONTA\n");
     return;
 }
 
@@ -217,6 +218,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
         transacs[*ntransacs].tipo = 'P';
         transacs[*ntransacs].valor = -vet[i].saldo;
         (*ntransacs)++;
+        printf("PAGAR %.2f\n", -vet[i].saldo);
     }
     else if (vet[i].saldo > 0)
     {
@@ -224,6 +226,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
         transacs[*ntransacs].tipo = 'S';
         transacs[*ntransacs].valor = vet[i].saldo;
         (*ntransacs)++;
+        printf("SAQUE %.2f\n", vet[i].saldo);
     }
     vet[i].nro_conta = -1; // Marca a conta como fechada
     transacs[*ntransacs].nro_conta = vet[i].nro_conta;

@@ -58,5 +58,6 @@ void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     transacs[*ntransacs].valor = 0.0;
     (*ntransacs)++;
 
+    printf("OKCONTA\n");
     return;
 }
