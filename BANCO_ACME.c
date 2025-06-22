@@ -87,6 +87,16 @@ void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
     return;
 }
 
+/**
+ * @brief Cria uma nova conta bancária após validar os dados de entrada.
+ * @param vet Ponteiro para o array de contas. O array será realocado para acomodar a nova conta.
+ * @param size Ponteiro para o inteiro que armazena o número atual de contas. Este valor é incrementado em caso de sucesso.
+ * @param transacs Ponteiro para o array de transações.
+ * @param ntransacs Ponteiro para o inteiro que armazena o número atual de transações. Este valor é incrementado em caso de sucesso.
+ * @note Lê o número da conta, CPF e nome da entrada padrão (stdin). Valida os dígitos da conta e do CPF.
+ * Imprime erros para dados inválidos (ERROCONTA, ERROCPF), contas duplicadas (ERRODUPLICADA),
+ * ou falha na alocação de memória (ERROALOCACAO). Em caso de sucesso, adiciona uma transação 'A' (Abertura).
+ */
 void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
 {
     char linha[3][30];
@@ -119,7 +129,7 @@ void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
         return;
     }
 
-    for(int i = 0; i < *size; i++)
+    for (int i = 0; i < *size; i++)
     {
         if (vet[i].nro_conta == atoi(linha[0]))
         {
@@ -128,7 +138,7 @@ void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
         }
     }
     *size += 1;
-    vet = (conta*)realloc(vet, (*size) * sizeof(conta));
+    vet = (conta *)realloc(vet, (*size) * sizeof(conta));
     if (vet == NULL)
     {
         printf("ERROALOCACAO\n");
@@ -148,6 +158,17 @@ void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     return;
 }
 
+/**
+ * @brief Fecha uma conta bancária existente após validação.
+ * @param vet Ponteiro para o array de contas.
+ * @param size Ponteiro para o inteiro que armazena o número atual de contas.
+ * @param transacs Ponteiro para o array de transações.
+ * @param ntransacs Ponteiro para o inteiro que armazena o número atual de transações. Este valor é incrementado.
+ * @note Lê o número da conta e o CPF da entrada padrão (stdin). Se a conta tiver saldo, registra uma
+ * transação de saque ('S') ou pagamento ('P') para zerá-lo. Marca a conta como fechada
+ * e registra uma transação 'F' (Fechamento). Imprime erros para dados inválidos (ERROCONTA, ERROCPF)
+ * ou se a conta não existir (ERROINEXISTENTE).
+ */
 void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
 {
     char linha[3][30];
@@ -180,22 +201,25 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
         return;
     }
     int i;
-    for(i = 0; i < *size; i++)
+    for (i = 0; i < *size; i++)
     {
-        if (vet[i].nro_conta == atoi(linha[0])) break;
+        if (vet[i].nro_conta == atoi(linha[0]))
+            break;
     }
     if (i == *size)
     {
         printf("ERROINEXISTENTE\n");
         return;
     }
-    if(vet[i].saldo < 0){
+    if (vet[i].saldo < 0)
+    {
         transacs[*ntransacs].nro_conta = vet[i].nro_conta;
         transacs[*ntransacs].tipo = 'P';
         transacs[*ntransacs].valor = -vet[i].saldo;
         (*ntransacs)++;
     }
-    else if(vet[i].saldo > 0){
+    else if (vet[i].saldo > 0)
+    {
         transacs[*ntransacs].nro_conta = vet[i].nro_conta;
         transacs[*ntransacs].tipo = 'S';
         transacs[*ntransacs].valor = vet[i].saldo;
@@ -209,6 +233,15 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     return;
 }
 
+/**
+ * @brief Exibe o saldo de uma conta, buscando por número da conta ou por CPF.
+ * @param vet Ponteiro para o array de contas.
+ * @param size O número atual de contas no array.
+ * @param tipo Um inteiro que especifica o tipo de busca: 0 para número da conta, 1 para CPF.
+ * @note Lê um número de conta ou um CPF da entrada padrão (stdin), com base no parâmetro `tipo`.
+ * Valida a entrada e imprime o saldo correspondente.
+ * Imprime erros para dados inválidos (ERROCONTA, ERROCPF) ou se o registro não for encontrado (ERROINEXISTENTE).
+ */
 void ver_saldo(conta *vet, int size, int tipo)
 {
     char linha[30];
@@ -236,7 +269,7 @@ void ver_saldo(conta *vet, int size, int tipo)
             }
         }
     }
-    else if (tipo==1)
+    else if (tipo == 1)
     {
         int a = 0;
         int b = 10 * (linha[9] - '0') + (linha[10] - '0');
@@ -263,15 +296,35 @@ void ver_saldo(conta *vet, int size, int tipo)
     return;
 }
 
+/**
+ * @brief Verifica se uma conta existe e retorna seu índice.
+ * @param nro_conta O número da conta a ser procurado.
+ * @param vet Ponteiro para o array de contas.
+ * @param size O número atual de contas no array.
+ * @param SOD Uma string ("ORIGEM", "DESTINO", etc.) para ser anexada às mensagens de erro para dar contexto.
+ * @return O índice da conta no array, se encontrada; caso contrário, -1.
+ * @note Imprime uma mensagem de erro (ERROCONTA ou ERROINEXISTENTE) sufixada com a string SOD se o
+ * número da conta for inválido ou não for encontrado.
+ */
 int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
 {
-    // SOD = Single/Origin/Destination
+    int n = nro_conta, sum = 0, rest = 0;
 
-    if (nro_conta <= 0 || nro_conta % 1 != 0)
+    do
     {
+        n = n / 10;
+
+        rest = n % 10;
+        sum += rest;
+
+    } while (n != rest);
+
+    if ((nro_conta % 10) != (sum % 10))
+    {
+
         printf("ERROCONTA%s\n", SOD);
         return -1;
-    }
+    };
 
     for (int i = 0; i < size; i++)
     {
@@ -326,7 +379,8 @@ void realizar_deposito(int posicaoConta, double valor, conta *contas, int nro_co
  * válida, o valor do saque é subtraído do saldo e a operação é registrada como uma
  * transação. Em caso de sucesso, exibe "CONTA [numero] - SAQUE [valor]".
  */
-void realizar_saque(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs) {
+void realizar_saque(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs)
+{
     contas[posicaoConta].saldo -= valor;
 
     transacs[*ntransacs].nro_conta = nro_conta;
@@ -335,7 +389,7 @@ void realizar_saque(int posicaoConta, double valor, conta *contas, int nro_conta
     (*ntransacs)++;
 
     printf("CONTA %08d - SAQUE %.2f\n", nro_conta, valor);
-}; 
+};
 
 /**
  * @brief Efetua um pagamento a partir de uma conta corrente.
@@ -350,7 +404,8 @@ void realizar_saque(int posicaoConta, double valor, conta *contas, int nro_conta
  * o valor do saldo da conta, registra uma nova transação do tipo 'P' (Pagamento),
  * e exibe a confirmação no formato "CONTA [numero] - PGTO [valor]".
  */
-void realizar_pagamento(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs) {
+void realizar_pagamento(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs)
+{
     contas[posicaoConta].saldo -= valor;
 
     transacs[*ntransacs].nro_conta = nro_conta;
@@ -377,8 +432,9 @@ void realizar_pagamento(int posicaoConta, double valor, conta *contas, int nro_c
  * da conta de destino e registra uma única transação do tipo 'T' (Transferência).
  * Ao final, exibe a confirmação no formato "DA CONTA [origem] PARA CONTA [destino] - TRANSF [valor]".
  */
-void realizar_transferencia(int posicaoOrigem, int posicaoDestino, double valor, conta* contas, int nro_origem, int nro_destino, transaction* transacs, int* ntransacs) {
-    
+void realizar_transferencia(int posicaoOrigem, int posicaoDestino, double valor, conta *contas, int nro_origem, int nro_destino, transaction *transacs, int *ntransacs)
+{
+
     contas[posicaoOrigem].saldo -= valor;
     contas[posicaoDestino].saldo += valor;
 
@@ -466,11 +522,6 @@ int salvar_dados_em_disco(conta *contas, int size, transaction *transacs, int nt
     return 1;
 };
 
-
-
-
-
-
 int main(int argc, char *argv[])
 {
     printf("EXEC MAIN\n");
@@ -482,16 +533,9 @@ int main(int argc, char *argv[])
     while (1)
     {
 
-        if (n == -2)
-        {
-            n = atoi(argv[1]);
-        }
-        else
-        {
-            scanf("%d", &n);
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF); 
-        }
+        scanf("%d", &n);
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF);
 
         switch (n)
         {
@@ -618,9 +662,12 @@ int main(int argc, char *argv[])
         // 9 – Salva em disco a posição atual do dia (saldos
         case 9:
         {
-            if (salvar_dados_em_disco(vet, size, transacs, ntransacs)) {
+            if (salvar_dados_em_disco(vet, size, transacs, ntransacs))
+            {
                 printf("OK\n");
-            } else {
+            }
+            else
+            {
                 printf("ERRO\n");
             }
             break;
