@@ -230,7 +230,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     }
     else if(vet[i].saldo == 0)
     {
-        printf("SALDO 0\n");
+        printf("NADA A PAGAR OU SACAR\n");
     }
     vet[i].nro_conta = -1; // Marca a conta como fechada
     transacs[*ntransacs].nro_conta = vet[i].nro_conta;
