@@ -251,6 +251,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
  */
 void ver_saldo(conta *vet, int size, int tipo)
 {
+    int cont=0;
     char linha[30];
     fgets(linha, sizeof(linha), stdin);
     linha[strcspn(linha, "\n")] = 0;
@@ -272,9 +273,9 @@ void ver_saldo(conta *vet, int size, int tipo)
             if (vet[i].nro_conta == nro_conta)
             {
                 printf("SALDO %.2f\n", vet[i].saldo);
+                cont++;
             }
         }
-        return;
     }
     else if (tipo == 1)
     {
@@ -295,11 +296,14 @@ void ver_saldo(conta *vet, int size, int tipo)
             if (vet[i].cpf == cpf)
             {
                 printf("CONTA %08d - SALDO %.2f\n", vet[i].nro_conta, vet[i].saldo);
+                cont++;
             }
         }
-        return;
     }
-    printf("ERROINEXISTENTE\n");
+    if (cont == 0)
+    {
+        printf("ERROINEXISTENTE\n");
+    }
     return;
 }
 
