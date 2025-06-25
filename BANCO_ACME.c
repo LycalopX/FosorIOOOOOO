@@ -97,7 +97,7 @@ void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
  * Imprime erros para dados inválidos (ERROCONTA, ERROCPF), contas duplicadas (ERRODUPLICADA),
  * ou falha na alocação de memória (ERROALOCACAO). Em caso de sucesso, adiciona uma transação 'A' (Abertura).
  */
-void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
+void abrir_conta(conta **vet, int *size, transaction *transacs, int *ntransacs)
 {
     char linha[3][30];
     for (int i = 0; i < 3; i++)
@@ -123,7 +123,7 @@ void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     {
         a += linha[1][i] - '0';
     }
-    if (a != b)
+    if ((a % 100) != b)
     {
         printf("ERROCPF\n");
         return;
@@ -131,26 +131,28 @@ void abrir_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
 
     for (int i = 0; i < *size; i++)
     {
-        if (vet[i].nro_conta == atoi(linha[0]))
+        if ((*vet)[i].nro_conta == atoi(linha[0]))
         {
             printf("ERRODUPLICADA\n");
             return;
         }
     }
-    *size += 1;
-    vet = (conta *)realloc(vet, (*size) * sizeof(conta));
-    if (vet == NULL)
+    conta *temp_ptr = (conta *)realloc(*vet, (*size + 1) * sizeof(conta));
+    if (temp_ptr == NULL)
     {
         printf("ERROALOCACAO\n");
         return;
     }
-    vet[*size - 1].nro_conta = atoi(linha[0]);
-    vet[*size - 1].cpf = atoll(linha[1]);
-    strncpy(vet[*size - 1].nome, linha[2], sizeof(vet[*size - 1].nome) - 1);
-    vet[*size - 1].nome[sizeof(vet[*size - 1].nome) - 1] = '\0';
-    vet[*size - 1].saldo = 0.0;
+    *vet = temp_ptr;
+    *size += 1;
+    
+    (*vet)[*size - 1].nro_conta = atoi(linha[0]);
+    (*vet)[*size - 1].cpf = atoll(linha[1]);
+    strncpy((*vet)[*size - 1].nome, linha[2], sizeof((*vet)[*size - 1].nome) - 1);
+    (*vet)[*size - 1].nome[sizeof((*vet)[*size - 1].nome) - 1] = '\0';
+    (*vet)[*size - 1].saldo = 0.0;
 
-    transacs[*ntransacs].nro_conta = vet[*size - 1].nro_conta;
+    transacs[*ntransacs].nro_conta = (*vet)[*size - 1].nro_conta;
     transacs[*ntransacs].tipo = 'A';
     transacs[*ntransacs].valor = 0.0;
     (*ntransacs)++;
@@ -196,7 +198,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     {
         a += linha[1][i] - '0';
     }
-    if (a != b)
+    if ((a % 100) != b)
     {
         printf("ERROCPF\n");
         return;
@@ -215,7 +217,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     if (vet[i].saldo < 0)
     {
         transacs[*ntransacs].nro_conta = vet[i].nro_conta;
-        transacs[*ntransacs].tipo = 'P';
+        transacs[*ntransacs].tipo = 'D';
         transacs[*ntransacs].valor = -vet[i].saldo;
         (*ntransacs)++;
         printf("PAGAR %.2f\n", -vet[i].saldo);
@@ -232,11 +234,11 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
     {
         printf("NADA A PAGAR OU SACAR\n");
     }
-    vet[i].nro_conta = -1; // Marca a conta como fechada
     transacs[*ntransacs].nro_conta = vet[i].nro_conta;
     transacs[*ntransacs].tipo = 'F';
     transacs[*ntransacs].valor = 0.0;
     (*ntransacs)++;
+    vet[i].nro_conta = -1; // Marca a conta como fechada
     return;
 }
 
@@ -285,7 +287,7 @@ void ver_saldo(conta *vet, int size, int tipo)
         {
             a += linha[i] - '0';
         }
-        if (a != b)
+        if ((a % 100) != b)
         {
             printf("ERROCPF\n");
             return;
@@ -503,6 +505,10 @@ int salvar_dados_em_disco(conta *contas, int size, transaction *transacs, int nt
 
     for (int i = 0; i < size; i++)
     {
+        if(contas[i].nro_conta < 0)
+        {
+            continue; // Pula contas fechadas
+        }
         fprintf(file, "%08d, %lld, %s, %.2lf\n",
                 contas[i].nro_conta,
                 contas[i].cpf,
@@ -591,7 +597,7 @@ int main(int argc, char *argv[])
         // 1 – Abre nova conta corrente
         case 1:
         {
-            abrir_conta(vet, &size, transacs, &ntransacs);
+            abrir_conta(&vet, &size, transacs, &ntransacs);
             break;
         }
 
