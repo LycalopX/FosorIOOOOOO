@@ -20,18 +20,11 @@ typedef struct transaction
 } transaction;
 
 /**
- * @brief Lê os dados de contas do arquivo "contasin.csv" e processa juros em saldos negativos.
- * @param vet Ponteiro para o vetor de contas que será alocado e preenchido.
- * @param size Ponteiro para a variável que armazenará o número de contas lidas.
- * @param transacs Ponteiro para o vetor onde as transações de juros serão armazenadas.
- * @param ntransacs Ponteiro para a variável que armazena o número total de transações.
- *
  * A função abre o arquivo "contasin.csv", aloca dinamicamente memória para armazenar
  * todas as contas e as carrega. Durante o carregamento, para cada conta com saldo
  * negativo, é aplicado um juro de 1% (aumentando o valor devido). Cada aplicação de
  * juros é registrada como uma nova transação no vetor 'transf'.
  * A função exibe "OK" na tela se a leitura for bem-sucedida ou "ERRO" em caso de falha
- * (ex: não conseguir abrir o arquivo).
  */
 void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
 {
@@ -75,23 +68,14 @@ void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
             transacs[*ntransacs].valor = a;
             (*ntransacs)++;
         }
-        i++; // Incrementa 1
+        i++;
     }
 
     fclose(arq);
     return;
 }
 
-/**
- * @brief Cria uma nova conta bancária após validar os dados de entrada.
- * @param vet Ponteiro para o array de contas. O array será realocado para acomodar a nova conta.
- * @param size Ponteiro para o inteiro que armazena o número atual de contas. Este valor é incrementado em caso de sucesso.
- * @param transacs Ponteiro para o array de transações.
- * @param ntransacs Ponteiro para o inteiro que armazena o número atual de transações. Este valor é incrementado em caso de sucesso.
- * @note Lê o número da conta, CPF e nome da entrada padrão (stdin). Valida os dígitos da conta e do CPF.
- * Imprime erros para dados inválidos (ERROCONTA, ERROCPF), contas duplicadas (ERRODUPLICADA),
- * ou falha na alocação de memória (ERROALOCACAO). Em caso de sucesso, adiciona uma transação 'A' (Abertura).
- */
+//Cria uma nova conta bancária após validar os dados de entrada.
 void abrir_conta(conta **vet, int *size, transaction *transacs, int *ntransacs)
 {
     char linha[3][30];
@@ -157,15 +141,9 @@ void abrir_conta(conta **vet, int *size, transaction *transacs, int *ntransacs)
 }
 
 /**
- * @brief Fecha uma conta bancária existente após validação.
- * @param vet Ponteiro para o array de contas.
- * @param size Ponteiro para o inteiro que armazena o número atual de contas.
- * @param transacs Ponteiro para o array de transações.
- * @param ntransacs Ponteiro para o inteiro que armazena o número atual de transações. Este valor é incrementado.
- * @note Lê o número da conta e o CPF da entrada padrão (stdin). Se a conta tiver saldo, registra uma
- * transação de saque ('S') ou pagamento ('P') para zerá-lo. Marca a conta como fechada
- * e registra uma transação 'F' (Fechamento). Imprime erros para dados inválidos (ERROCONTA, ERROCPF)
- * ou se a conta não existir (ERROINEXISTENTE).
+ * Fecha uma conta bancária existente após validação.
+ * Se a conta tiver saldo, registra uma transação de depósito ou pagamento para zerá-lo. 
+ * Marca a conta como fechada e registra uma transação 'F' (Fechamento).
  */
 void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
 {
@@ -238,13 +216,8 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
 }
 
 /**
- * @brief Exibe o saldo de uma conta, buscando por número da conta ou por CPF.
- * @param vet Ponteiro para o array de contas.
- * @param size O número atual de contas no array.
- * @param tipo Um inteiro que especifica o tipo de busca: 0 para número da conta, 1 para CPF.
- * @note Lê um número de conta ou um CPF da entrada padrão (stdin), com base no parâmetro `tipo`.
- * Valida a entrada e imprime o saldo correspondente.
- * Imprime erros para dados inválidos (ERROCONTA, ERROCPF) ou se o registro não for encontrado (ERROINEXISTENTE).
+ * Exibe o saldo de uma conta, buscando por número da conta ou por CPF.
+ * O tipo indica se a busca é por número da conta (0) ou por CPF (1).
  */
 void ver_saldo(conta *vet, int size, int tipo)
 {
@@ -305,14 +278,8 @@ void ver_saldo(conta *vet, int size, int tipo)
 }
 
 /**
- * @brief Verifica se uma conta existe e retorna seu índice.
- * @param nro_conta O número da conta a ser procurado.
- * @param vet Ponteiro para o array de contas.
- * @param size O número atual de contas no array.
- * @param SOD Uma string ("ORIGEM", "DESTINO", etc.) para ser anexada às mensagens de erro para dar contexto.
- * @return O índice da conta no array, se encontrada; caso contrário, -1.
- * @note Imprime uma mensagem de erro (ERROCONTA ou ERROINEXISTENTE) sufixada com a string SOD se o
- * número da conta for inválido ou não for encontrado.
+ * Verifica se a conta existe e retorna seu índice.
+ * SOD é uma string usada para dar contexto às mensagens de erro.
  */
 int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
 {
@@ -346,21 +313,7 @@ int contaExiste(int nro_conta, conta *vet, int size, char *SOD)
     return -1;
 }
 
-/**
- * @brief Realiza um depósito em uma conta corrente específica.
- * @param posicaoConta A posição na string da conta que receberá o depósito.
- * @param valor O valor a ser depositado.
- * @param contas Vetor que armazena todas as contas existentes.
- * @param nro_conta Número da conta que receberá o depósito
- * @param transacs Vetor para registrar a nova transação de depósito.
- * @param ntransacs Ponteiro para a variável que indica o número de transações totais.
- *
- * A função primeiro valida o número da conta. Se for inválido, exibe "ERROCONTA".
- * Em seguida, busca a conta no sistema. Se não a encontrar, exibe "ERROINEXISTENTE".
- * Se a conta for válida e existir, o valor do depósito é somado ao saldo atual
- * e a operação é registrada como uma nova transação. Em caso de sucesso, exibe uma
- * mensagem de confirmação no formato "CONTA [numero] - DEP [valor]".
- */
+//Realiza um depósito de uma conta corrente após validar os dados de entrada.
 void realizar_deposito(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs)
 {
     contas[posicaoConta].saldo += valor;
@@ -373,20 +326,8 @@ void realizar_deposito(int posicaoConta, double valor, conta *contas, int nro_co
     printf("CONTA %08d - DEP %.2f\n", nro_conta, valor);
 }
 
-/**
- * @brief Realiza um saque de uma conta corrente específica.
- * @param posicaoConta A posição na string da conta que receberá o depósito.
- * @param valor O valor a ser depositado.
- * @param contas Vetor que armazena todas as contas existentes.
- * @param nro_conta Número da conta que receberá o depósito
- * @param transacs Vetor para registrar a nova transação de depósito.
- * @param ntransacs Ponteiro para a variável que indica o número de transações totais.
- *
- * A função valida o número da conta (retornando "ERROCONTA" se inválido) e verifica
- * sua existência (retornando "ERROINEXISTENTE" se não encontrada). Se a conta for
- * válida, o valor do saque é subtraído do saldo e a operação é registrada como uma
- * transação. Em caso de sucesso, exibe "CONTA [numero] - SAQUE [valor]".
- */
+
+//Realiza um saque de uma conta corrente após validar os dados de entrada.
 void realizar_saque(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs)
 {
     contas[posicaoConta].saldo -= valor;
@@ -399,19 +340,7 @@ void realizar_saque(int posicaoConta, double valor, conta *contas, int nro_conta
     printf("CONTA %08d - SAQUE %.2f\n", nro_conta, valor);
 };
 
-/**
- * @brief Efetua um pagamento a partir de uma conta corrente.
- * @param posicaoConta O índice da conta no vetor de contas.
- * @param valor O valor do pagamento a ser debitado.
- * @param contas Ponteiro para o vetor de todas as contas.
- * @param nro_conta O número da conta que está efetuando o pagamento.
- * @param transacs Ponteiro para o vetor de transações.
- * @param ntransacs Ponteiro para o contador total de transações.
- *
- * Esta função assume que a conta já foi validada e encontrada. Ela subtrai
- * o valor do saldo da conta, registra uma nova transação do tipo 'P' (Pagamento),
- * e exibe a confirmação no formato "CONTA [numero] - PGTO [valor]".
- */
+//Efetua um pagamento de uma conta corrente após validar os dados de entrada.
 void realizar_pagamento(int posicaoConta, double valor, conta *contas, int nro_conta, transaction *transacs, int *ntransacs)
 {
     contas[posicaoConta].saldo -= valor;
@@ -424,22 +353,7 @@ void realizar_pagamento(int posicaoConta, double valor, conta *contas, int nro_c
     printf("CONTA %08d - PGTO %.2f\n", nro_conta, valor);
 };
 
-/**
- * @brief Efetua uma transferência de valor entre duas contas correntes.
- * @param posicaoOrigem O índice da conta de origem no vetor.
- * @param posicaoDestino O índice da conta de destino no vetor.
- * @param valor O valor a ser transferido.
- * @param contas Ponteiro para o vetor de todas as contas.
- * @param nro_origem Número da conta de origem (para log e impressão).
- * @param nro_destino Número da conta de destino (para log e impressão).
- * @param transacs Ponteiro para o vetor de transações.
- * @param ntransacs Ponteiro para o contador total de transações.
- *
- * Esta função assume que ambas as contas já foram validadas e encontradas.
- * Ela subtrai o valor do saldo da conta de origem, adiciona o mesmo valor ao saldo
- * da conta de destino e registra uma única transação do tipo 'T' (Transferência).
- * Ao final, exibe a confirmação no formato "DA CONTA [origem] PARA CONTA [destino] - TRANSF [valor]".
- */
+//Efetua uma transferência de valor entre duas contas correntes.
 void realizar_transferencia(int posicaoOrigem, int posicaoDestino, double valor, conta *contas, int nro_origem, int nro_destino, transaction *transacs, int *ntransacs)
 {
 
@@ -459,34 +373,9 @@ void realizar_transferencia(int posicaoOrigem, int posicaoDestino, double valor,
     printf("DA CONTA %08d PARA CONTA %08d - TRANSF %.2lf\n", nro_origem, nro_destino, valor);
 };
 
-/**
- * @brief Salva o estado atual das contas e transações em arquivos CSV.
- * @param contas Ponteiro para o vetor com os dados de todas as contas.
- * @param size O número total de contas a serem salvas.
- * @param transacs Ponteiro para o vetor com todas as transações realizadas.
- * @param ntransacs O número total de transações a serem salvas.
- *
- * Esta função cria ou sobrescreve dois arquivos de saída para persistir os dados da sessão:
- *
- * 1.  `contasout.csv`: Salva a situação atual das contas.
- * - O arquivo inicia com um cabeçalho no formato [N_CONTAS],[N_COLUNAS].
- * - Cada linha subsequente representa uma conta com seus dados (número, CPF, nome, saldo),
- * com o valor do saldo sempre formatado para ter duas casas decimais.
- *
- * 2.  `operaout.csv`: Salva o histórico de todas as transações (máximo de 1000).
- * - Cada linha representa uma transação com 3 campos: número da conta, tipo e valor.
- * - O valor da transação também é formatado com duas casas decimais.
- * - Os tipos de transação são:
- * - J: Juros (cobrados na carga inicial em contas negativas)
- * - D: Depósito
- * - S: Saque
- * - P: Pagamento
- * - A: Abertura de nova conta
- * - F: Fechamento de conta
- *
- * A função exibe "OK" na tela se ambos os arquivos forem escritos com sucesso,
- * ou "ERRO" se ocorrer qualquer falha durante o processo de escrita.
- */
+//Salva os dados das contas e transações em arquivos CSV.
+//Verifica se a conta está fechada (nro_conta < 0) e não a inclui no arquivo de saída.
+//O arquivo "contasout.csv" contém os dados das contas e "operaout.csv" contém as transações.
 int salvar_dados_em_disco(conta *contas, int size, transaction *transacs, int ntransacs)
 {
     FILE *file = fopen("contasout.csv", "w");
