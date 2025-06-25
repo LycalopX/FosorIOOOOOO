@@ -54,21 +54,16 @@ void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
     }
 
     int i = 0;
+
     while (fgets(linha, sizeof(linha), arq))
     {
-        linha[strcspn(linha, "\n")] = 0;
-        char *tok = strtok(linha, ",");
-        (*vet)[i].nro_conta = atoi(tok);
+        // Pega os 4 dados
+        sscanf(linha, "%d, %lld, %[^,], %lf",
+               &(*vet)[i].nro_conta,
+               &(*vet)[i].cpf,
+               (*vet)[i].nome,
+               &(*vet)[i].saldo);
 
-        tok = strtok(NULL, ",");
-        (*vet)[i].cpf = atoll(tok);
-
-        tok = strtok(NULL, ",");
-        strncpy((*vet)[i].nome, tok, sizeof((*vet)[i].nome) - 1);
-        (*vet)[i].nome[sizeof((*vet)[i].nome) - 1] = '\0';
-
-        tok = strtok(NULL, ",");
-        (*vet)[i].saldo = atof(tok);
         if ((*vet)[i].saldo < 0)
         {
             double a = (*vet)[i].saldo * 0.01;
@@ -80,7 +75,7 @@ void read_data(conta **vet, int *size, transaction *transacs, int *ntransacs)
             transacs[*ntransacs].valor = a;
             (*ntransacs)++;
         }
-        i++;
+        i++; // Incrementa 1
     }
 
     fclose(arq);
@@ -145,7 +140,7 @@ void abrir_conta(conta **vet, int *size, transaction *transacs, int *ntransacs)
     }
     *vet = temp_ptr;
     *size += 1;
-    
+
     (*vet)[*size - 1].nro_conta = atoi(linha[0]);
     (*vet)[*size - 1].cpf = atoll(linha[1]);
     strncpy((*vet)[*size - 1].nome, linha[2], sizeof((*vet)[*size - 1].nome) - 1);
@@ -230,7 +225,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
         (*ntransacs)++;
         printf("SAQUE %.2f\n", vet[i].saldo);
     }
-    else if(vet[i].saldo == 0)
+    else if (vet[i].saldo == 0)
     {
         printf("NADA A PAGAR OU SACAR\n");
     }
@@ -253,7 +248,7 @@ void fechar_conta(conta *vet, int *size, transaction *transacs, int *ntransacs)
  */
 void ver_saldo(conta *vet, int size, int tipo)
 {
-    int cont=0;
+    int cont = 0;
     char linha[30];
     fgets(linha, sizeof(linha), stdin);
     linha[strcspn(linha, "\n")] = 0;
@@ -501,11 +496,17 @@ int salvar_dados_em_disco(conta *contas, int size, transaction *transacs, int nt
         return 0;
     }
 
+    for (int i = 0; i < size; i++) {
+        if (contas[i].nro_conta < 0) {
+            (size)--;
+        }
+    }
+
     fprintf(file, "%d, %d\n", size, 4);
 
     for (int i = 0; i < size; i++)
     {
-        if(contas[i].nro_conta < 0)
+        if (contas[i].nro_conta < 0)
         {
             continue; // Pula contas fechadas
         }
@@ -549,7 +550,7 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        if(ntransacs >= 1000)
+        if (ntransacs >= 1000)
         {
             printf("NUMERO DE TRANSACOES MAXIMAS DO DIA ALCANCADAS\nEXEC FIM\n");
             free(vet);
