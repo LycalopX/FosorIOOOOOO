@@ -544,11 +544,11 @@ int main(int argc, char *argv[])
 {
     printf("EXEC MAIN\n");
 
-    int n = -2, size = 0, ntransacs = 0;
+    int n = -2, size = 0, ntransacs = 0, loop = 1;
     conta *vet = calloc(1, sizeof(conta));
     transaction *transacs = calloc(1000, sizeof(transaction));
 
-    while (1)
+    while (loop)
     {
         if (ntransacs >= 1000)
         {
@@ -562,8 +562,7 @@ int main(int argc, char *argv[])
 
         scanf("%d", &n);
         int c;
-        while ((c = getchar()) != '\n' && c != EOF)
-            ;
+        while ((c = getchar()) != '\n' && c != EOF);
 
         switch (n)
         {
@@ -571,12 +570,8 @@ int main(int argc, char *argv[])
         // Se n for -1, encerra o programa
         case -1:
         {
-            printf("EXEC FIM\n");
-            free(vet);
-            free(transacs);
-            vet = NULL;
-            transacs = NULL;
-            return 0;
+            loop = 0;
+            break;
         }
 
         // 0 – Carrega dados do arquivo “contasin.csv” (e atualiza com cobrança de juros em contas negativas)
